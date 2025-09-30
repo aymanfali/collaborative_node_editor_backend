@@ -1,8 +1,8 @@
 import express from "express";
-
 import { errorHandler } from "./middlewares/error.middleware.js";
 import morgan from "morgan";
-import mainRotues from './routes/v1/index.routes.js'
+import mainRotues from "./routes/v1/index.routes.js";
+
 const app = express();
 
 // Core middleware
@@ -15,8 +15,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/v1", mainRotues)
-
+app.use("/api/v1", mainRotues);
 app.use(errorHandler);
 
 export default app;
