@@ -17,8 +17,8 @@ const server = createServer(app);
 // Attach Socket.IO to the same server
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
+    origin: "http://localhost:5173", // frontend URL
+    methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
 
