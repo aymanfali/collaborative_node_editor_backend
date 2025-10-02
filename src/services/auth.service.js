@@ -4,6 +4,40 @@ import { User } from "../models/user.model.js";
 import { Token } from "../models/token.model.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/jwt.js";
 
+const getExpiry = (days = 7) => {
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + days);
+  return expiresAt;
+};
+
+export const socialLogin = async (provider, providerId, email, name, avatar) => {
+  let user = await User.findOne({ provider, providerId });
+
+  if (!user) {
+    // If user already exists with same email (local), link it
+    user = await User.findOne({ email });
+    if (user) {
+      user.provider = provider;
+      user.providerId = providerId;
+      // set avatar if provided and not already set
+      if (avatar && !user.avatar) user.avatar = avatar;
+      await user.save();
+    } else {
+      user = await User.create({ provider, providerId, email, name, avatar });
+    }
+  }
+
+  // Rotate tokens
+  await Token.deleteMany({ userId: user._id });
+
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
+
+  await Token.create({ userId: user._id, token: refreshToken, expiresAt: getExpiry() });
+
+  return { accessToken, refreshToken, user };
+};
+
 /**
  * Register a new user
  */
@@ -11,8 +45,8 @@ export const register = async (name, email, password) => {
   const existingUser = await User.findOne({ email });
   if (existingUser) throw new Error("Email already in use");
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = new User({ name, email, password: hashedPassword });
+  // Let the user schema pre-save hook hash the password
+  const user = new User({ name, email, password });
   await user.save();
 
   const accessToken = generateAccessToken(user);

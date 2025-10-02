@@ -11,11 +11,16 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    avatar: { type: String, trim: true },
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return this.provider === "local";
+      },
       minlength: 6,
     },
+    provider: { type: String, default: "local" },
+    providerId: String,
   },
   { timestamps: true }
 );
