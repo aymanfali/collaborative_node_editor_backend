@@ -11,13 +11,13 @@ if (!ACCESS_SECRET || !REFRESH_SECRET) {
 }
 
 export const generateAccessToken = (user) => {
-  return jwt.sign({ id: user._id, email: user.email }, ACCESS_SECRET, {
+  return jwt.sign({ id: user._id, email: user.email, role: user.role }, ACCESS_SECRET, {
     expiresIn: "15m",
   });
 };
 
 export const generateRefreshToken = (user) => {
-  return jwt.sign({ id: user._id, email: user.email }, REFRESH_SECRET, {
+  return jwt.sign({ id: user._id, email: user.email, role: user.role }, REFRESH_SECRET, {
     expiresIn: "7d",
   });
 };
