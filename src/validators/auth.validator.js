@@ -16,9 +16,9 @@ export const loginValidator = [
 ];
 
 export const refreshValidator = [
-  body("refreshToken").notEmpty().withMessage("Refresh token is required"),
+  body("refreshToken").optional(), // allow cookie-based refresh
 ];
 
 export const logoutValidator = [
-  body("refreshToken").notEmpty().withMessage("Refresh token is required"),
+  body("refreshToken").optional(), // allow cookie-based logout
 ];

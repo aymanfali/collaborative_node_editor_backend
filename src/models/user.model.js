@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema(
       },
       minlength: 6,
     },
+    role: { type: String, enum: ["admin", "owner"], default: "owner" },
     provider: { type: String, default: "local" },
     providerId: String,
   },
