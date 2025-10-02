@@ -2,11 +2,17 @@ import { verifyAccessToken } from "../utils/jwt.js";
 
 export const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader)
-    return res.status(401).json({ message: "Authorization header missing" });
+  let token = null;
 
-  const token = authHeader.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "Token missing" });
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  } else if (req.cookies && req.cookies.accessToken) {
+    token = req.cookies.accessToken;
+  }
+
+  if (!token) {
+    return res.status(401).json({ message: "Token missing" });
+  }
 
   try {
     const payload = verifyAccessToken(token);
