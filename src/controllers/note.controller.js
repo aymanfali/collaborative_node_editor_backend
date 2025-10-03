@@ -19,7 +19,7 @@ export const getNotes = async (req, res) => {
     try {
         const isAdmin = req.user?.role === 'admin';
         const query = isAdmin ? {} : { owner: req.user?.id };
-        const notes = await Note.find(query);
+        const notes = await Note.find(query).populate('owner', 'name email');
         res.json(notes);
     } catch (err) {
         res.status(500).json({ message: err.message });
