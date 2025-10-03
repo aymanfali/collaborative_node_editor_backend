@@ -4,6 +4,7 @@ import morgan from "morgan";
 import mainRotues from "./routes/v1/index.routes.js";
 import cors from "cors";
 import authRoutes from "./routes/v1/auth.routes.js";
+import adminRoutes from "./routes/v1/admin.routes.js";
 import passport from "./config/passport.js";
 import cookieParser from "cookie-parser";
 
@@ -31,6 +32,7 @@ app.use((req, res, next) => {
 
 app.use("/api/v1", mainRotues);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/admin", adminRoutes);
 
 app.use(errorHandler);
 
