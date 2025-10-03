@@ -8,6 +8,7 @@ import {
 } from "../../validators/auth.validator.js";
 import passport from "passport";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
+import { uploadAvatar as uploadAvatarMulter } from "../../middlewares/upload.middleware.js";
 
 const router = express.Router();
 
@@ -54,5 +55,22 @@ router.post("/logout", logoutValidator, authController.logout);
 
 // Return current authenticated user
 router.get("/me", authMiddleware, authController.me);
+
+// Update current authenticated user
+router.patch("/me", authMiddleware, authController.updateMe);
+
+// Upload avatar for current authenticated user
+router.post(
+  "/avatar",
+  authMiddleware,
+  (req, res, next) => uploadAvatarMulter(req, res, (err) => {
+    if (err) {
+      const status = err.message?.includes('image') ? 400 : 500;
+      return res.status(status).json({ success: false, message: err.message || 'Upload failed' });
+    }
+    next();
+  }),
+  authController.uploadAvatar
+);
 
 export default router;
