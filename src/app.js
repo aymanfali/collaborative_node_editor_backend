@@ -7,6 +7,7 @@ import authRoutes from "./routes/v1/auth.routes.js";
 import adminRoutes from "./routes/v1/admin.routes.js";
 import passport from "./config/passport.js";
 import cookieParser from "cookie-parser";
+import path from "path";
 
 
 const app = express();
@@ -14,7 +15,7 @@ const app = express();
 // Enable CORS for your frontend with credentials (cookies)
 app.use(cors({
   origin: "http://localhost:5173", // frontend URL
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   credentials: true,
 }));
 
@@ -29,6 +30,9 @@ app.use((req, res, next) => {
   console.log(`[${now}] ${req.method} ${req.originalUrl}`);
   next();
 });
+
+// Serve uploaded files
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 app.use("/api/v1", mainRotues);
 app.use("/api/v1/auth", authRoutes);

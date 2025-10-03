@@ -15,6 +15,44 @@ const handleValidation = (req) => {
   }
 };
 
+// Handle avatar upload and update the user's avatar URL
+export const uploadAvatar = async (req, res) => {
+  try {
+    const { id } = req.user || {};
+    if (!id) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    // multer places file info on req.file
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    const filename = req.file.filename;
+    const absoluteUrl = `${req.protocol}://${req.get('host')}/uploads/avatars/${filename}`;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.avatar = absoluteUrl;
+    await user.save();
+
+    const safe = {
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      provider: user.provider,
+      role: user.role,
+    };
+
+    return res.json({ success: true, data: safe, message: 'Avatar uploaded successfully' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message || 'Server error' });
+  }
+};
+
 export const register = async (req, res) => {
   try {
     handleValidation(req);
@@ -122,5 +160,52 @@ export const me = async (req, res) => {
     return res.json({ success: true, data: user });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message || "Server error" });
+  }
+};
+
+// Allow the authenticated user to update their own profile
+export const updateMe = async (req, res) => {
+  try {
+    const { id } = req.user || {};
+    if (!id) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    // Only allow updating specific fields
+    const { name, avatar, password } = req.body || {};
+    const update = {};
+    if (typeof name === 'string' && name.trim().length >= 3) update.name = name.trim();
+    if (typeof avatar === 'string') update.avatar = avatar.trim();
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Apply allowed updates
+    if (update.name !== undefined) user.name = update.name;
+    if (update.avatar !== undefined) user.avatar = update.avatar;
+
+    // Optional password change for local provider
+    if (password && user.provider === 'local') {
+      if (typeof password !== 'string' || password.length < 6) {
+        return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+      }
+      user.password = password; // will be hashed by pre('save') hook
+    }
+
+    await user.save();
+
+    const safe = {
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      provider: user.provider,
+      role: user.role,
+    };
+
+    return res.json({ success: true, data: safe, message: 'Profile updated successfully' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message || 'Server error' });
   }
 };
