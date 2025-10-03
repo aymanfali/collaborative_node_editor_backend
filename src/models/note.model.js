@@ -12,6 +12,13 @@ import mongoose from 'mongoose';
           default: ''
       },
       owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+      collaborators: [
+        {
+          user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+          permission: { type: String, enum: ['view', 'edit'], default: 'view' },
+          addedAt: { type: Date, default: Date.now }
+        }
+      ],
   }, { timestamps: true });
   
   export default mongoose.model('Note', NoteSchema);
