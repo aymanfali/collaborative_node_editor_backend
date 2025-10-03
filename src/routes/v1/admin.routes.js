@@ -1,6 +1,7 @@
 import express from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
 import { User } from "../../models/user.model.js";
+import Note from "../../models/note.model.js";
 
 const router = express.Router();
 
@@ -21,6 +22,22 @@ router.get("/users", authMiddleware, requireAdmin, async (req, res) => {
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message || "Failed to load users" });
+  }
+});
+
+// GET /api/v1/admin/stats -> return counts (admin only)
+router.get("/stats", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const [usersCount, notesCount] = await Promise.all([
+      User.countDocuments(),
+      Note.countDocuments(),
+    ]);
+    const activeSessions = req.app.get("activeSockets") || 0;
+    res.json({ users: usersCount, notes: notesCount, activeSessions });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: err.message || "Failed to load admin stats" });
   }
 });
 

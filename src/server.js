@@ -22,9 +22,16 @@ const io = new Server(server, {
   },
 });
 
+// Expose io instance and track active socket connections
+app.set("io", io);
+let activeSockets = 0;
+app.set("activeSockets", activeSockets);
+
 // Socket.IO events
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
+  activeSockets += 1;
+  app.set("activeSockets", activeSockets);
 
   socket.on("editor-changes", (data) => {
     // Broadcast to everyone else
@@ -33,6 +40,8 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("Socket disconnected:", socket.id);
+    activeSockets = Math.max(0, activeSockets - 1);
+    app.set("activeSockets", activeSockets);
   });
 });
 
