@@ -39,22 +39,63 @@ export const getNotes = async (req, res) => {
             query = { ...query, $text: { $search: q } };
         }
 
-        // Projection and sort based on whether text search is used
-        const findQuery = Note.find(query, hasSearch ? { score: { $meta: 'textScore' } } : undefined);
+        // Build query and sort based on whether text search is used
+        const findQuery = Note.find(query);
         if (hasSearch) {
+            // Include text score while keeping all document fields
+            findQuery.select({ score: { $meta: 'textScore' } });
             findQuery.sort({ score: { $meta: 'textScore' } });
         } else {
             findQuery.sort({ createdAt: -1 });
         }
 
-        const notes = await findQuery
-            .populate('owner', 'name email')
-            .populate('collaborators.user', 'name email');
-        res.json(notes);
+        try {
+            let notes = await findQuery
+                .populate('owner', 'name email')
+                .populate('collaborators.user', 'name email');
+
+            // If text search yields no results, try a regex-based partial match fallback
+            if (hasSearch && (!Array.isArray(notes) || notes.length === 0)) {
+                const safe = escapeRegex(q);
+                const regex = new RegExp(safe, 'i');
+                const isAdmin = req.user?.role === 'admin';
+                const authOr = { $or: [ { owner: req.user?.id }, { 'collaborators.user': req.user?.id } ] };
+                const searchOr = { $or: [ { title: regex }, { content: regex } ] };
+                const fallbackQuery = isAdmin ? searchOr : { $and: [ authOr, searchOr ] };
+
+                notes = await Note.find(fallbackQuery)
+                    .sort({ createdAt: -1 })
+                    .populate('owner', 'name email')
+                    .populate('collaborators.user', 'name email');
+            }
+            return res.json(notes);
+        } catch (err) {
+            // Fallback to regex search if text index is missing
+            const msg = String(err?.message || '');
+            const needsFallback = hasSearch && (msg.includes('text index required') || msg.includes('text index') || err?.code === 27);
+            if (!needsFallback) throw err;
+
+            const safe = escapeRegex(q);
+            const regex = new RegExp(safe, 'i');
+            const isAdmin = req.user?.role === 'admin';
+            const authOr = { $or: [ { owner: req.user?.id }, { 'collaborators.user': req.user?.id } ] };
+            const searchOr = { $or: [ { title: regex }, { content: regex } ] };
+            const fallbackQuery = isAdmin ? searchOr : { $and: [ authOr, searchOr ] };
+
+            const fallbackNotes = await Note.find(fallbackQuery)
+                .sort({ createdAt: -1 })
+                .populate('owner', 'name email')
+                .populate('collaborators.user', 'name email');
+            return res.json(fallbackNotes);
+        }
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
+
+function escapeRegex(str = '') {
+    return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 // Get a single Note
 export const getNoteById = async (req, res) => {

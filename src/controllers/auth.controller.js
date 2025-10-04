@@ -109,8 +109,29 @@ export const login = async (req, res) => {
 export const refresh = async (req, res) => {
   try {
     handleValidation(req);
-    const { refreshToken } = req.body;
+    // Accept refresh token from body or from HttpOnly cookie
+    let { refreshToken } = req.body || {};
+    if (!refreshToken && req.cookies && req.cookies.refreshToken) {
+      refreshToken = req.cookies.refreshToken;
+    }
+
     const tokens = await authService.refreshToken(refreshToken);
+
+    // After rotating tokens, also refresh cookies so subsequent requests succeed via cookies
+    const isProd = process.env.NODE_ENV === 'production';
+    res.cookie('accessToken', tokens.accessToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     res.json({ success: true, data: tokens });
   } catch (err) {
     res

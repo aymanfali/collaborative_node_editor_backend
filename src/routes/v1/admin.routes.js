@@ -41,4 +41,16 @@ router.get("/stats", authMiddleware, requireAdmin, async (req, res) => {
   }
 });
 
+// DELETE /api/v1/admin/users/:id -> delete user (admin only)
+router.delete("/users/:id", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndDelete(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    return res.json({ message: "User deleted" });
+  } catch (err) {
+    return res.status(500).json({ message: err.message || "Failed to delete user" });
+  }
+});
+
 export default router;
