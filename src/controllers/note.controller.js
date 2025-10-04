@@ -20,6 +20,9 @@ export const createNote = async (req, res) => {
 export const getNotes = async (req, res) => {
     try {
         const isAdmin = req.user?.role === 'admin';
+        const q = (req.query?.q || '').toString().trim();
+
+        // Base authorization filter
         let query = {};
         if (!isAdmin) {
             query = {
@@ -29,7 +32,22 @@ export const getNotes = async (req, res) => {
                 ]
             };
         }
-        const notes = await Note.find(query)
+
+        // Apply full-text search if q present
+        const hasSearch = q.length > 0;
+        if (hasSearch) {
+            query = { ...query, $text: { $search: q } };
+        }
+
+        // Projection and sort based on whether text search is used
+        const findQuery = Note.find(query, hasSearch ? { score: { $meta: 'textScore' } } : undefined);
+        if (hasSearch) {
+            findQuery.sort({ score: { $meta: 'textScore' } });
+        } else {
+            findQuery.sort({ createdAt: -1 });
+        }
+
+        const notes = await findQuery
             .populate('owner', 'name email')
             .populate('collaborators.user', 'name email');
         res.json(notes);
