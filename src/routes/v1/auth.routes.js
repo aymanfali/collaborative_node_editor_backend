@@ -9,6 +9,8 @@ import {
 import passport from "passport";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
 import { uploadAvatar as uploadAvatarMulter } from "../../middlewares/upload.middleware.js";
+import { validate } from "../../middlewares/validator.middleware.js";
+import { updateMeValidator } from "../../validators/user.validator.js";
 
 const router = express.Router();
 
@@ -57,7 +59,7 @@ router.post("/logout", logoutValidator, authController.logout);
 router.get("/me", authMiddleware, authController.me);
 
 // Update current authenticated user
-router.patch("/me", authMiddleware, authController.updateMe);
+router.patch("/me", authMiddleware, updateMeValidator, validate, authController.updateMe);
 
 // Upload avatar for current authenticated user
 router.post(

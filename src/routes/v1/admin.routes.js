@@ -2,6 +2,8 @@ import express from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
 import { User } from "../../models/user.model.js";
 import Note from "../../models/note.model.js";
+import { param } from "express-validator";
+import { validate } from "../../middlewares/validator.middleware.js";
 
 const router = express.Router();
 
@@ -42,7 +44,7 @@ router.get("/stats", authMiddleware, requireAdmin, async (req, res) => {
 });
 
 // DELETE /api/v1/admin/users/:id -> delete user (admin only)
-router.delete("/users/:id", authMiddleware, requireAdmin, async (req, res) => {
+router.delete("/users/:id", authMiddleware, requireAdmin, param("id").isMongoId().withMessage("Invalid user ID"), validate, async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findByIdAndDelete(id);
