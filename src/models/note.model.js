@@ -20,5 +20,12 @@ import mongoose from 'mongoose';
         }
       ],
   }, { timestamps: true });
+ 
+ // Full-text index on title and content for searching
+ // Weights prioritize title matches higher than content matches
+ NoteSchema.index(
+   { title: 'text', content: 'text' },
+   { name: 'NoteTextIndex', weights: { title: 5, content: 1 } }
+ );
   
   export default mongoose.model('Note', NoteSchema);
