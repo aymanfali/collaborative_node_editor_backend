@@ -63,11 +63,20 @@ export const getNoteById = async (req, res) => {
         if (!note) return res.status(404).json({ message: 'Note not found' });
         const isAdmin = req.user?.role === 'admin';
         const isOwner = String(note.owner) === String(req.user?.id);
-        const isCollaborator = note.collaborators?.some(c => String(c.user) === String(req.user?.id));
+        const collab = note.collaborators?.find(c => String(c.user) === String(req.user?.id));
+        const isCollaborator = !!collab;
         if (!isAdmin && !isOwner && !isCollaborator) {
             return res.status(403).json({ message: 'Forbidden' });
         }
-        res.json(note);
+        const canEdit = isAdmin || isOwner || (collab && collab.permission === 'edit');
+        const payload = note.toObject({ virtuals: true });
+        payload.__meta = {
+            canEdit,
+            canManage: isAdmin || isOwner,
+            isCollaborator,
+            permission: collab?.permission || (isOwner ? 'edit' : (isAdmin ? 'edit' : null)),
+        };
+        res.json(payload);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
