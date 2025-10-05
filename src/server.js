@@ -17,7 +17,7 @@ const server = createServer(app);
 // Attach Socket.IO to the same server
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // frontend URL
+    origin: process.env.FRONTEND_URL, // frontend URL
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   },
 });
@@ -94,5 +94,5 @@ io.on("connection", (socket) => {
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running at ${process.env.FRONTEND_URL}:${PORT}`);
 });
