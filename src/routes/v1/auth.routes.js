@@ -11,8 +11,28 @@ import { authMiddleware } from "../../middlewares/auth.middleware.js";
 import { uploadAvatar as uploadAvatarMulter } from "../../middlewares/upload.middleware.js";
 import { validate } from "../../middlewares/validator.middleware.js";
 import { updateMeValidator } from "../../validators/user.validator.js";
+import rateLimit from "express-rate-limit";
 
 const router = express.Router();
+
+// Basic rate limiting for sensitive endpoints
+const makeLimiter = (max, actionName) =>
+  rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (req, res, _next, options) => {
+      return res.status(options.statusCode).json({
+        success: false,
+        message: `Too many ${actionName} attempts. Please try again in 15 minutes.`,
+      });
+    },
+  });
+
+const registerLimiter = makeLimiter(10, "registration");
+const loginLimiter = makeLimiter(10, "login");
+const refreshLimiter = makeLimiter(30, "token refresh");
 
 // Redirect user to Google
 router.get("/google", passport.authenticate("google", { 
@@ -50,9 +70,9 @@ router.get(
     return res.redirect(FRONTEND_URL);
   }
 );
-router.post("/register", registerValidator, authController.register);
-router.post("/login", loginValidator, authController.login);
-router.post("/refresh", refreshValidator, authController.refresh);
+router.post("/register", registerLimiter, registerValidator, authController.register);
+router.post("/login", loginLimiter, loginValidator, authController.login);
+router.post("/refresh", refreshLimiter, refreshValidator, authController.refresh);
 router.post("/logout", logoutValidator, authController.logout);
 
 // Return current authenticated user

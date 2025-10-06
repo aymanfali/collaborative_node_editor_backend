@@ -239,6 +239,15 @@ Base: `/api/v1/admin` — require `role=admin`.
 - `CORS` enabled for `FRONTEND_URL` and credentials.
 - When using cookies, ensure client sends `withCredentials: true` and server has `SameSite` and `Secure` flags according to environment.
 
+## Rate Limiting
+
+- Basic rate limits are applied to sensitive endpoints using `express-rate-limit`:
+  - `POST /api/v1/auth/login`: max 10 requests / 15 minutes per IP
+  - `POST /api/v1/auth/register`: max 10 requests / 15 minutes per IP
+  - `POST /api/v1/auth/refresh`: max 30 requests / 15 minutes per IP
+- Exceeding a limit returns HTTP 429 with a clear message.
+- Implementation in `backend/src/routes/v1/auth.routes.js`.
+
 ## Socket.IO Events
 
 Namespace: default. Server initialized in `src/server.js`.
