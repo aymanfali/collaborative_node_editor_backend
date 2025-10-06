@@ -1,0 +1,159 @@
+{
+  "info": {
+    "_postman_id": "5e9b1e9a-1234-4e9b-b111-51f8a9f1d001",
+    "name": "Conote API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for Collaborative Note Editor API"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"secret123\"\n}" }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"secret123\"\n}" }
+          }
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Update Me",
+          "request": {
+            "method": "PATCH",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"New Name\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notes",
+      "item": [
+        {
+          "name": "Create Note",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{baseUrl}}/notes", "host": ["{{baseUrl}}"], "path": ["notes"] },
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"My Note\",\n  \"content\": \"<p>Hello</p>\"\n}" }
+          }
+        },
+        {
+          "name": "List Notes",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/notes", "host": ["{{baseUrl}}"], "path": ["notes"], "query": [ {"key": "q", "value": "meeting"} ] }
+          }
+        },
+        {
+          "name": "Get Note",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/notes/:id", "host": ["{{baseUrl}}"], "path": ["notes", ":id"] }
+          }
+        },
+        {
+          "name": "Update Note",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{baseUrl}}/notes/:id", "host": ["{{baseUrl}}"], "path": ["notes", ":id"] },
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Updated\",\n  \"content\": \"<p>Updated</p>\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Note",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/notes/:id", "host": ["{{baseUrl}}"], "path": ["notes", ":id"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notes Export",
+      "item": [
+        { "name": "Export MD", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/notes/:id/export.md", "host": ["{{baseUrl}}"], "path": ["notes", ":id", "export.md"] } } },
+        { "name": "Export HTML", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/notes/:id/export.html", "host": ["{{baseUrl}}"], "path": ["notes", ":id", "export.html"] } } },
+        { "name": "Export PDF", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/notes/:id/export.pdf", "host": ["{{baseUrl}}"], "path": ["notes", ":id", "export.pdf"] } } }
+      ]
+    },
+    {
+      "name": "Collaborators",
+      "item": [
+        { "name": "List Collaborators", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/notes/:id/collaborators", "host": ["{{baseUrl}}"], "path": ["notes", ":id", "collaborators"] } } },
+        { "name": "Upsert Collaborator", "request": { "method": "POST", "header": [ {"key": "Content-Type", "value": "application/json"} ], "url": { "raw": "{{baseUrl}}/notes/:id/collaborators", "host": ["{{baseUrl}}"], "path": ["notes", ":id", "collaborators"] }, "body": {"mode": "raw", "raw": "{\n  \"email\": \"collab@example.com\",\n  \"permission\": \"edit\"\n}" } } },
+        { "name": "Remove Collaborator", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/notes/:id/collaborators/:userId", "host": ["{{baseUrl}}"], "path": ["notes", ":id", "collaborators", ":userId"] } } }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        { "name": "List Users", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/admin/users", "host": ["{{baseUrl}}"], "path": ["admin", "users"] } } },
+        { "name": "Stats", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/admin/stats", "host": ["{{baseUrl}}"], "path": ["admin", "stats"] } } },
+        { "name": "Delete User", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/admin/users/:id", "host": ["{{baseUrl}}"], "path": ["admin", "users", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/auth/avatar", "host": ["{{baseUrl}}"], "path": ["auth", "avatar"] },
+            "body": { "mode": "formdata", "formdata": [ { "key": "avatar", "type": "file", "src": [] } ] }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1" }
+  ]
+}
