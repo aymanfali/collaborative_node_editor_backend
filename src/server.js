@@ -19,8 +19,23 @@ const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URL, // frontend URL
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    credentials: true
   },
+  // Required for Render's proxy
+  path: "/socket.io/",
+  // Enable WebSocket transport
+  transports: ["websocket", "polling"],
+  // Handle proxy headers
+  allowEIO3: true,
+  // Increase ping timeout for Render's proxy
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
+
+// Trust proxy for secure cookies in production
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
 
 // Expose io instance and track active socket connections
 app.set("io", io);
